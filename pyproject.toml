@@ -5,7 +5,7 @@ description = "Stable authoring service layer for oa-cohorts"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "oa-cohorts>=0.4.0",
+    "oa-cohorts>=0.4.1",
     "sqlalchemy>=2.0",
 ]
 

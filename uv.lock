@@ -940,7 +940,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "oa-cohorts", specifier = ">=0.4.0" },
+    { name = "oa-cohorts", specifier = ">=0.4.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "sqlalchemy", specifier = ">=2.0" },
 ]
@@ -948,16 +948,17 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "oa-cohorts"
-version = "0.4.0"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "omop-alchemy" },
     { name = "omop-constructs" },
     { name = "rich" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/de/5ecbffa26bec2bb8d3662489f75977cf806ffd43339d1ebfae15af8387d0/oa_cohorts-0.4.0.tar.gz", hash = "sha256:dd6aaa0fa62a94c5a50e2531c4e5a2e9ff8d992d966433ec8dc9d472d5334879", size = 43996, upload-time = "2026-04-01T10:06:54.789Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/e3/6b5274364ac13882003899d1f5712480b3166ea375ff476047db4680acaa/oa_cohorts-0.4.1.tar.gz", hash = "sha256:622f57f8912f8108af2db38d73d1e82e57dc777dd3327117cc49cc33659047d8", size = 47124, upload-time = "2026-05-04T12:10:33.495Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/32/5551ff25b990d3e83599d77412518c24db5b63b813073ddc57a46f22bf45/oa_cohorts-0.4.0-py3-none-any.whl", hash = "sha256:3439fe712f1e790eb6c179bdd849bd092be8737305ab4a4da79d38ebb049e790", size = 60297, upload-time = "2026-04-01T10:06:53.163Z" },
+    { url = "https://files.pythonhosted.org/packages/51/a2/af7a3803d4757a05e4ad61109f305d129bff3f80e427eb13467c07ee2cd3/oa_cohorts-0.4.1-py3-none-any.whl", hash = "sha256:8c2f9f86fde1d698ce60dc9972fd12ca3e51d6a8df5c88569a0a36ed80d9b58c", size = 63666, upload-time = "2026-05-04T12:10:31.947Z" },
 ]
 
 [[package]]
