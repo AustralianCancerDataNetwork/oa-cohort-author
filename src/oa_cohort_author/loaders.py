@@ -10,7 +10,7 @@ from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure, MeasureRelationship
 from oa_cohorts.query.phenotype import Phenotype
 from oa_cohorts.query.query_rule import QueryRule
-from oa_cohorts.query.report import Report, ReportCohortMap, ReportVersion, report_indicator_map
+from oa_cohorts.query.report import Report, ReportCohortMap, report_indicator_map
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
 
 from .models import (
@@ -36,7 +36,6 @@ from .validation import entity_fields, validate_entity_instance
 
 ENTITY_MODEL = {
     EntityKind.report: Report,
-    EntityKind.report_version: ReportVersion,
     EntityKind.indicator: Indicator,
     EntityKind.dash_cohort: DashCohort,
     EntityKind.dash_cohort_def: DashCohortDef,
@@ -67,7 +66,6 @@ def list_reports(session: so.Session) -> list[ReportSummary]:
         .options(
             so.selectinload(Report.cohorts).selectinload(ReportCohortMap.cohort),
             so.selectinload(Report.indicators),
-            so.selectinload(Report.report_versions),
         )
         .order_by(Report.report_id)
     )
@@ -81,7 +79,6 @@ def list_reports(session: so.Session) -> list[ReportSummary]:
             owner=report.report_owner,
             indicator_count=len(report.indicators),
             cohort_count=len(report.cohorts),
-            statuses=tuple(sorted({version.report_status.value for version in report.report_versions})),
         )
         for report in reports
     ]
@@ -123,7 +120,6 @@ def load_report_workspace(session: so.Session, report_id: int) -> ReportWorkspac
             .selectinload(Subquery.rules),
             so.selectinload(Report.indicators).joinedload(Indicator.numerator_measure),
             so.selectinload(Report.indicators).joinedload(Indicator.denominator_measure),
-            so.selectinload(Report.report_versions),
         )
     ).scalars().unique().one()
 
@@ -152,7 +148,6 @@ def load_report_workspace(session: so.Session, report_id: int) -> ReportWorkspac
         description=report.report_description or "",
         author=report.report_author,
         owner=report.report_owner,
-        statuses=tuple(sorted({version.report_status.value for version in report.report_versions})),
         valid=validation.valid,
         executability=report.executable_status().value,
         primary_cohort_names=primary_names,
@@ -352,10 +347,6 @@ def compute_usage(session: so.Session, kind: EntityKind, entity_id: int) -> Usag
             for item in report.cohorts
             if item.cohort is not None
         )
-    elif kind is EntityKind.report_version:
-        version = get_entity(session, kind, entity_id)
-        inbound.append(f"report:{version.report_id}:{version.report.report_name}")
-
     return UsageSummary(kind=kind, entity_id=entity_id, inbound=tuple(sorted(inbound)), outbound=tuple(sorted(outbound)))
 
 def _workspace_node_for_indicator(
@@ -942,8 +933,6 @@ def _detail_link(kind: EntityKind, entity_id: int, label: str) -> DetailLink:
 def _entity_title(kind: EntityKind, entity: Any) -> str:
     if kind is EntityKind.report:
         return entity.report_name
-    if kind is EntityKind.report_version:
-        return f"{entity.report_version_major}.{entity.report_version_minor} {entity.report_version_label}"
     if kind is EntityKind.indicator:
         return entity.indicator_description
     if kind is EntityKind.dash_cohort:
@@ -968,7 +957,6 @@ def _relationships(entity: Any, kind: EntityKind) -> dict[str, tuple[str, ...]]:
                 if item.cohort is not None
             ),
             "indicators": tuple(f"{item.indicator_id}:{item.indicator_description}" for item in entity.indicators),
-            "versions": tuple(f"{item.report_version_id}:{item.report_version_label}" for item in entity.report_versions),
         }
     if kind is EntityKind.indicator:
         return {
@@ -1000,8 +988,6 @@ def _relationships(entity: Any, kind: EntityKind) -> dict[str, tuple[str, ...]]:
         }
     if kind is EntityKind.phenotype:
         return {"concept_ids": tuple(str(item.query_concept_id) for item in entity.phenotype_definitions)}
-    if kind is EntityKind.report_version:
-        return {"report": (f"{entity.report_id}:{entity.report.report_name}",)}
     return {}
 
 

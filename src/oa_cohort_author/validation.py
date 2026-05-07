@@ -12,7 +12,7 @@ from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure
 from oa_cohorts.query.phenotype import Phenotype
 from oa_cohorts.query.query_rule import QueryRule
-from oa_cohorts.query.report import Report, ReportVersion
+from oa_cohorts.query.report import Report
 from oa_cohorts.query.subquery import Subquery
 
 from .models import EntityKind, EntityPayload, ValidationMessage, ValidationResult
@@ -20,7 +20,6 @@ from .models import EntityKind, EntityPayload, ValidationMessage, ValidationResu
 
 MODEL_BY_KIND: dict[EntityKind, type] = {
     EntityKind.report: Report,
-    EntityKind.report_version: ReportVersion,
     EntityKind.indicator: Indicator,
     EntityKind.dash_cohort: DashCohort,
     EntityKind.dash_cohort_def: DashCohortDef,
@@ -108,17 +107,6 @@ def validate_payload(kind: EntityKind, payload: EntityPayload) -> ValidationResu
     elif kind is EntityKind.dash_cohort:
         if not cleaned.get("dash_cohort_name"):
             messages.append(ValidationMessage("dash_cohort_name", "dash_cohort_name is required"))
-    elif kind is EntityKind.report_version:
-        for field in (
-            "report_id",
-            "report_version_major",
-            "report_version_minor",
-            "report_version_label",
-            "report_version_date",
-            "report_status",
-        ):
-            if cleaned.get(field) is None:
-                messages.append(ValidationMessage(field, f"{field} is required"))
     elif kind is EntityKind.phenotype:
         if not cleaned.get("phenotype_name"):
             messages.append(ValidationMessage("phenotype_name", "phenotype_name is required"))

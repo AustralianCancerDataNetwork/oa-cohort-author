@@ -7,7 +7,6 @@ from typing import Any, Mapping, TypeAlias
 
 class EntityKind(str, enum.Enum):
     report = "report"
-    report_version = "report_version"
     indicator = "indicator"
     dash_cohort = "dash_cohort"
     dash_cohort_def = "dash_cohort_def"
@@ -27,7 +26,6 @@ class RelationKind(str, enum.Enum):
     indicator_denominator = "indicator_denominator"
     dash_cohort_def_measure = "dash_cohort_def_measure"
     measure_subquery = "measure_subquery"
-    report_version = "report_version"
 
 
 class SQLVariant(str, enum.Enum):
@@ -163,7 +161,6 @@ class ReportSummary:
     owner: str | None
     indicator_count: int
     cohort_count: int
-    statuses: tuple[str, ...] = ()
 
 @dataclass(frozen=True)
 class DashCohortDefSummary:
@@ -189,7 +186,6 @@ class ReportWorkspace:
     description: str
     author: str
     owner: str | None
-    statuses: tuple[str, ...]
     valid: bool
     executability: str
     primary_cohort_names: tuple[str, ...]

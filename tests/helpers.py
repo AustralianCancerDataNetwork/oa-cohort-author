@@ -233,29 +233,6 @@ def _build_config_dir(config_dir: Path) -> Path:
         ],
     )
     _write_csv(
-        config_dir / "report_version.csv",
-        [
-            "report_version_id",
-            "report_id",
-            "report_version_major",
-            "report_version_minor",
-            "report_version_label",
-            "report_version_date",
-            "report_status",
-        ],
-        [
-            {
-                "report_version_id": 1,
-                "report_id": 1,
-                "report_version_major": 0,
-                "report_version_minor": 1,
-                "report_version_label": "alpha",
-                "report_version_date": "2024-05-15",
-                "report_status": "draft",
-            },
-        ],
-    )
-    _write_csv(
         config_dir / "report_indicator_map.csv",
         ["report_id", "indicator_id"],
         [

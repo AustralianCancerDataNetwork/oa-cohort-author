@@ -1,6 +1,6 @@
 [project]
 name = "oa-cohort-author"
-version = "0.1.0"
+version = "0.1.1"
 description = "Stable authoring service layer for oa-cohorts"
 readme = "README.md"
 requires-python = ">=3.12"

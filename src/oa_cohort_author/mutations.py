@@ -13,7 +13,7 @@ from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure, MeasureRelationship
 from oa_cohorts.query.phenotype import Phenotype, PhenotypeDefinition
 from oa_cohorts.query.query_rule import QueryRule
-from oa_cohorts.query.report import Report, ReportCohortMap, ReportVersion, report_indicator_map
+from oa_cohorts.query.report import Report, ReportCohortMap, report_indicator_map
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
 
 from .loaders import ENTITY_MODEL, compute_usage, get_entity, load_entity_detail
@@ -32,16 +32,6 @@ DIRECT_MUTABLE_FIELDS: dict[EntityKind, frozenset[str]] = {
             "report_edit_date",
             "report_author",
             "report_owner",
-        }
-    ),
-    EntityKind.report_version: frozenset(
-        {
-            "report_id",
-            "report_version_major",
-            "report_version_minor",
-            "report_version_label",
-            "report_version_date",
-            "report_status",
         }
     ),
     EntityKind.indicator: frozenset(
@@ -302,7 +292,6 @@ def _cleanup_outbound_links(session: so.Session, kind: EntityKind, entity_id: in
     if kind is EntityKind.report:
         session.execute(sa.delete(report_indicator_map).where(report_indicator_map.c.report_id == entity_id))
         session.execute(sa.delete(ReportCohortMap).where(ReportCohortMap.report_id == entity_id))
-        session.execute(sa.delete(ReportVersion).where(ReportVersion.report_id == entity_id))
     elif kind is EntityKind.dash_cohort:
         session.execute(sa.delete(dash_cohort_def_map).where(dash_cohort_def_map.c.dash_cohort_id == entity_id))
     elif kind is EntityKind.dash_cohort_def:
@@ -360,8 +349,6 @@ def _friendly_mutation_error(kind: EntityKind, exc: Exception) -> str:
 def _entity_id(instance: Any, kind: EntityKind) -> int:
     if kind is EntityKind.report:
         return instance.report_id
-    if kind is EntityKind.report_version:
-        return instance.report_version_id
     if kind is EntityKind.indicator:
         return instance.indicator_id
     if kind is EntityKind.dash_cohort:
@@ -430,10 +417,6 @@ def _link_entities_internal(
         measure = get_entity(session, EntityKind.measure, left_id)
         measure.subquery_id = right_id
         return EntityKind.measure, left_id
-    if relation is RelationKind.report_version:
-        version = get_entity(session, EntityKind.report_version, right_id)
-        version.report_id = left_id
-        return EntityKind.report, left_id
     raise ValueError(f"Unsupported relation {relation}")
 
 
@@ -494,7 +477,7 @@ def _unlink_entities_internal(
 
 
 def _relation_owner_kind(relation: RelationKind) -> EntityKind:
-    if relation in {RelationKind.report_indicator, RelationKind.report_cohort, RelationKind.report_version}:
+    if relation in {RelationKind.report_indicator, RelationKind.report_cohort}:
         return EntityKind.report
     if relation is RelationKind.dash_cohort_definition:
         return EntityKind.dash_cohort
