@@ -13,7 +13,7 @@ from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure, MeasureRelationship
 from oa_cohorts.query.phenotype import Phenotype, PhenotypeDefinition
 from oa_cohorts.query.query_rule import QueryRule
-from oa_cohorts.query.report import Report, ReportCohortMap, report_indicator_map
+from oa_cohorts.query.report import Report, ReportCohortMap, ReportIndicatorMap
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
 
 from .loaders import ENTITY_MODEL, compute_usage, get_entity, load_entity_detail
@@ -39,15 +39,7 @@ DIRECT_MUTABLE_FIELDS: dict[EntityKind, frozenset[str]] = {
             "indicator_description",
             "indicator_reference",
             "numerator_measure_id",
-            "numerator_label",
             "denominator_measure_id",
-            "denominator_label",
-            "temporal_early",
-            "temporal_late",
-            "temporal_min",
-            "temporal_min_units",
-            "temporal_max",
-            "temporal_max_units",
             "numerator_max_days_prior",
             "numerator_max_days_post",
             "denominator_max_days_prior",
@@ -237,15 +229,7 @@ def clone_for_edit(session: so.Session, kind: EntityKind, entity_id: int, parent
                 indicator_description=entity.indicator_description,
                 indicator_reference=entity.indicator_reference,
                 numerator_measure_id=entity.numerator_measure_id,
-                numerator_label=entity.numerator_label,
                 denominator_measure_id=entity.denominator_measure_id,
-                denominator_label=entity.denominator_label,
-                temporal_early=entity.temporal_early,
-                temporal_late=entity.temporal_late,
-                temporal_min=entity.temporal_min,
-                temporal_min_units=entity.temporal_min_units,
-                temporal_max=entity.temporal_max,
-                temporal_max_units=entity.temporal_max_units,
                 numerator_max_days_prior=entity.numerator_max_days_prior,
                 numerator_max_days_post=entity.numerator_max_days_post,
                 denominator_max_days_prior=entity.denominator_max_days_prior,
@@ -290,7 +274,7 @@ def delete_entity(session: so.Session, kind: EntityKind, entity_id: int) -> Muta
 
 def _cleanup_outbound_links(session: so.Session, kind: EntityKind, entity_id: int) -> None:
     if kind is EntityKind.report:
-        session.execute(sa.delete(report_indicator_map).where(report_indicator_map.c.report_id == entity_id))
+        session.execute(sa.delete(ReportIndicatorMap).where(ReportIndicatorMap.report_id == entity_id))
         session.execute(sa.delete(ReportCohortMap).where(ReportCohortMap.report_id == entity_id))
     elif kind is EntityKind.dash_cohort:
         session.execute(sa.delete(dash_cohort_def_map).where(dash_cohort_def_map.c.dash_cohort_id == entity_id))
@@ -376,7 +360,7 @@ def _link_entities_internal(
     attrs: Mapping[str, Any],
 ) -> tuple[EntityKind, int]:
     if relation is RelationKind.report_indicator:
-        session.execute(sa.insert(report_indicator_map).values(report_id=left_id, indicator_id=right_id))
+        session.execute(sa.insert(ReportIndicatorMap).values(report_id=left_id, indicator_id=right_id))
         return EntityKind.report, left_id
     if relation is RelationKind.report_cohort:
         primary_cohort = parse_bool(attrs.get("primary_cohort", False))
@@ -428,10 +412,10 @@ def _unlink_entities_internal(
 ) -> tuple[EntityKind, int]:
     if relation is RelationKind.report_indicator:
         session.execute(
-            sa.delete(report_indicator_map).where(
+            sa.delete(ReportIndicatorMap).where(
                 sa.and_(
-                    report_indicator_map.c.report_id == left_id,
-                    report_indicator_map.c.indicator_id == right_id,
+                    ReportIndicatorMap.report_id == left_id,
+                    ReportIndicatorMap.indicator_id == right_id,
                 )
             )
         )
@@ -587,17 +571,15 @@ def _relink_clone(
         indicator = get_entity(session, EntityKind.indicator, parent.parent_id)
         indicator.denominator_measure_id = clone_id
     elif parent.relation is RelationKind.report_indicator:
-        session.execute(
-            sa.delete(report_indicator_map).where(
+        link = session.execute(
+            sa.select(ReportIndicatorMap).where(
                 sa.and_(
-                    report_indicator_map.c.report_id == parent.parent_id,
-                    report_indicator_map.c.indicator_id == original_id,
+                    ReportIndicatorMap.report_id == parent.parent_id,
+                    ReportIndicatorMap.indicator_id == original_id,
                 )
             )
-        )
-        session.execute(
-            sa.insert(report_indicator_map).values(report_id=parent.parent_id, indicator_id=clone_id)
-        )
+        ).scalars().one()
+        link.indicator_id = clone_id
     elif parent.relation is RelationKind.dash_cohort_definition:
         session.execute(
             sa.delete(dash_cohort_def_map).where(

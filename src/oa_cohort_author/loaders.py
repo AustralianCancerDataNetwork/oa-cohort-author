@@ -10,7 +10,7 @@ from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure, MeasureRelationship
 from oa_cohorts.query.phenotype import Phenotype
 from oa_cohorts.query.query_rule import QueryRule
-from oa_cohorts.query.report import Report, ReportCohortMap, report_indicator_map
+from oa_cohorts.query.report import Report, ReportCohortMap, ReportIndicatorMap
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
 
 from .models import (
@@ -118,8 +118,12 @@ def load_report_workspace(session: so.Session, report_id: int) -> ReportWorkspac
             .selectinload(DashCohortDef.dash_cohort_measure)
             .joinedload(Measure.subquery)
             .selectinload(Subquery.rules),
-            so.selectinload(Report.indicators).joinedload(Indicator.numerator_measure),
-            so.selectinload(Report.indicators).joinedload(Indicator.denominator_measure),
+            so.selectinload(Report.indicator_links)
+            .joinedload(ReportIndicatorMap.indicator)
+            .joinedload(Indicator.numerator_measure),
+            so.selectinload(Report.indicator_links)
+            .joinedload(ReportIndicatorMap.indicator)
+            .joinedload(Indicator.denominator_measure),
         )
     ).scalars().unique().one()
 
@@ -130,9 +134,10 @@ def load_report_workspace(session: so.Session, report_id: int) -> ReportWorkspac
         for cohort_map in report.cohorts
         if cohort_map.cohort is not None
     )
+    indicator_links = [link for link in report.indicator_links if link.indicator is not None]
     indicators = tuple(
-        _workspace_node_for_indicator(session, indicator, usage_cache)
-        for indicator in sorted(report.indicators)
+        _workspace_node_for_indicator(session, link.indicator, usage_cache, link=link)
+        for link in sorted(indicator_links, key=lambda item: item.indicator)
     )
     primary_names = tuple(
         sorted(
@@ -306,8 +311,8 @@ def compute_usage(session: so.Session, kind: EntityKind, entity_id: int) -> Usag
     elif kind is EntityKind.indicator:
         reports = session.execute(
             sa.select(Report.report_id, Report.report_name)
-            .join(report_indicator_map, Report.report_id == report_indicator_map.c.report_id)
-            .where(report_indicator_map.c.indicator_id == entity_id)
+            .join(ReportIndicatorMap, Report.report_id == ReportIndicatorMap.report_id)
+            .where(ReportIndicatorMap.indicator_id == entity_id)
         ).all()
         inbound.extend(f"report:{item.report_id}:{item.report_name}" for item in reports)
         indicator = get_entity(session, kind, entity_id)
@@ -353,7 +358,10 @@ def _workspace_node_for_indicator(
     session: so.Session,
     indicator: Indicator,
     usage_cache: dict[tuple[EntityKind, int], UsageSummary] | None = None,
+    *,
+    link: ReportIndicatorMap | None = None,
 ) -> WorkspaceNode:
+    
     usage = _usage_summary(session, EntityKind.indicator, indicator.indicator_id, usage_cache)
     validation = validate_entity_instance(EntityKind.indicator, indicator)
     children = (
@@ -363,7 +371,7 @@ def _workspace_node_for_indicator(
     return WorkspaceNode(
         kind=EntityKind.indicator,
         entity_id=indicator.indicator_id,
-        label=indicator.indicator_description,
+        label=link.label if link is not None else indicator.indicator_description,
         summary=(
             ("numerator", indicator.numerator_label),
             ("denominator", indicator.denominator_label),
@@ -676,14 +684,7 @@ def _tailored_detail_view(
             hide_relationships=True,
         )
     if kind is EntityKind.indicator:
-        report_rows = tuple(
-            DetailRow(
-                report.report_name,
-                report.report_short_name or "-",
-                link=_detail_link(EntityKind.report, report.report_id, report.report_name),
-            )
-            for report in sorted(entity.in_reports, key=lambda item: item.report_name)
-        )
+        report_rows = _indicator_report_rows(entity)
         return TailoredDetailView(
             summary_sections=(
                 DetailSection(
@@ -859,6 +860,52 @@ def _benchmark_summary(entity: Indicator) -> str:
         return "-"
     unit = entity.benchmark_unit or ""
     return f"{entity.benchmark} {unit}".strip()
+
+
+#: Override column -> the name shown for it in the Reports section.
+_OVERRIDE_FIELD_NAMES = {
+    'indicator_label_override': 'label',
+    'indicator_reference_override': 'reference',
+    'benchmark_override': 'benchmark',
+    'benchmark_unit_override': 'benchmark unit',
+}
+
+
+def _indicator_report_rows(entity: Indicator) -> tuple[DetailRow, ...]:
+    """One row per report this indicator belongs to, showing what that report displays.
+
+    Read-only. Overrides are maintained directly against the workbench database for now,
+    so this view exists to make a discrepancy legible rather than editable -- somebody
+    looking at the lung report and the library side by side needs to see *why* the wording
+    differs, or they will go and change the canonical description.
+
+    The value spells out the report's label only when it actually restates something.
+    Repeating the canonical description back for every inheriting report would bury the
+    one row that matters.
+    """
+    rows = []
+    for link in sorted(
+        (item for item in entity.report_links if item.report is not None),
+        key=lambda item: item.report.report_name,
+    ):
+        report = link.report
+        overridden = [
+            shown
+            for column, shown in _OVERRIDE_FIELD_NAMES.items()
+            if getattr(link, column) is not None
+        ]
+        if overridden:
+            value = f'{link.label} — restates {", ".join(overridden)}'
+        else:
+            value = report.report_short_name or "-"
+        rows.append(
+            DetailRow(
+                report.report_name,
+                value,
+                link=_detail_link(EntityKind.report, report.report_id, report.report_name),
+            )
+        )
+    return tuple(rows)
 
 
 def _measure_shape(measure: Measure) -> str:
@@ -1049,9 +1096,11 @@ def _build_usage_cache_for_report(
 
     if indicator_ids:
         rows = session.execute(
-            sa.select(report_indicator_map.c.report_id, report_indicator_map.c.indicator_id, Report.report_name)
-            .join(Report, Report.report_id == report_indicator_map.c.report_id)
-            .where(report_indicator_map.c.indicator_id.in_(indicator_ids))
+            sa.select(
+                ReportIndicatorMap.report_id, ReportIndicatorMap.indicator_id, Report.report_name
+            )
+            .join(Report, Report.report_id == ReportIndicatorMap.report_id)
+            .where(ReportIndicatorMap.indicator_id.in_(indicator_ids))
         ).all()
         for row in rows:
             usage_map[(EntityKind.indicator, row.indicator_id)]["inbound"].append(
