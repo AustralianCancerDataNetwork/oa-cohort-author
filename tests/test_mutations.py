@@ -150,7 +150,7 @@ def test_report_update_stamps_edit_date(tmp_path):
     with session_factory() as session:
         report = session.get(Report, 1)
         assert report is not None
-        assert report.report_edit_date.date() == date.today()
+        assert report.report_edit_date == date.today()
 
 
 def test_report_short_name_must_be_unique(tmp_path):
