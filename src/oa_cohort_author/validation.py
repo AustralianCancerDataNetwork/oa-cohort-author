@@ -4,9 +4,9 @@ from collections.abc import Mapping
 from typing import Any
 
 import sqlalchemy as sa
-
-from oa_cohorts.core.coercion import coerce_column_value, parse_int
+import sqlalchemy.orm as so
 from oa_cohorts.core import RuleMatcher
+from oa_cohorts.core.coercion import coerce_column_value, parse_int
 from oa_cohorts.query.dash_cohort import DashCohort, DashCohortDef
 from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure
@@ -17,8 +17,7 @@ from oa_cohorts.query.subquery import Subquery
 
 from .models import EntityKind, EntityPayload, ValidationMessage, ValidationResult
 
-
-MODEL_BY_KIND: dict[EntityKind, type] = {
+MODEL_BY_KIND: dict[EntityKind, type[so.DeclarativeBase]] = {
     EntityKind.report: Report,
     EntityKind.indicator: Indicator,
     EntityKind.dash_cohort: DashCohort,
@@ -32,7 +31,7 @@ MODEL_BY_KIND: dict[EntityKind, type] = {
 
 def coerce_payload(kind: EntityKind, payload: EntityPayload) -> dict[str, Any]:
     model = MODEL_BY_KIND[kind]
-    available_columns = {column.name: column for column in model.__table__.columns}
+    available_columns = {column.name: column for column in sa.inspect(model).columns}
     cleaned: dict[str, Any] = {}
 
     for key, raw_value in payload.items():
@@ -129,7 +128,7 @@ def validate_entity_instance(kind: EntityKind, entity: Any) -> ValidationResult:
 def entity_fields(kind: EntityKind, entity: Any) -> dict[str, Any]:
     model = MODEL_BY_KIND[kind]
     out: dict[str, Any] = {}
-    for column in model.__table__.columns:
+    for column in sa.inspect(model).columns:
         value = getattr(entity, column.name)
         if isinstance(column.type, sa.Enum) and value is not None:
             out[column.name] = value.value

@@ -15,11 +15,14 @@ if str(PUBLIC_ROOT) not in sys.path:
     sys.path.insert(0, str(PUBLIC_ROOT))
 
 
-import sqlalchemy as sa
 import pytest
+import sqlalchemy as sa
 from oa_cohorts.core import RuleTarget
-from oa_cohorts.measurables.measurable_base import MeasurableBase, MeasurableSpec, MeasurableDomain
-
+from oa_cohorts.measurables.measurable_base import (
+    MeasurableBase,
+    MeasurableDomain,
+    MeasurableSpec,
+)
 
 test_events = sa.table(
     "test_events",

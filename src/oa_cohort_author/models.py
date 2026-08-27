@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import enum
-from typing import Any, Mapping, TypeAlias
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from typing import Any, TypeAlias
 
 
 class EntityKind(str, enum.Enum):
@@ -149,7 +150,7 @@ class WorkspaceNode:
     executability: str | None = None
     status_label: str | None = None
     status_tone: StatusTone | None = None
-    children: tuple["WorkspaceNode", ...] = ()
+    children: tuple[WorkspaceNode, ...] = ()
 
 
 @dataclass(frozen=True)
