@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
-
-from oa_cohort_author import AuthoringService, SQLVariant
 from oa_cohorts.cli.config_import import import_config_directory
 from oa_cohorts.core import RuleCombination, RuleMatcher, RuleTarget, RuleTemporality
 from oa_cohorts.query.measure import Measure
 from oa_cohorts.query.query_rule import PresenceRule
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
+
+from oa_cohort_author import AuthoringService, SQLVariant
 from tests.helpers import _build_config_dir
 
 

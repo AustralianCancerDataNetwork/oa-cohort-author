@@ -10,13 +10,13 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
+from oa_cohorts.cli.config_import import import_config_directory
+from oa_cohorts.query.indicator import Indicator
+from oa_cohorts.query.report import Report, ReportIndicatorMap
 
 from oa_cohort_author import AuthoringService, EntityKind
 from oa_cohort_author.models import ParentRef, RelationKind
 from oa_cohort_author.mutations import DIRECT_MUTABLE_FIELDS
-from oa_cohorts.cli.config_import import import_config_directory
-from oa_cohorts.query.indicator import Indicator
-from oa_cohorts.query.report import Report, ReportIndicatorMap
 from tests.helpers import _build_config_dir
 
 CANONICAL = "Test indicator"

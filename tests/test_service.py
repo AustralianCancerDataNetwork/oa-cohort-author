@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
+from oa_cohorts.cli.config_import import import_config_directory
 
 from oa_cohort_author import AuthoringService, EntityKind
-from oa_cohorts.cli.config_import import import_config_directory
 from tests.helpers import _build_config_dir
 
 

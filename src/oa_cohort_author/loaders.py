@@ -4,7 +4,6 @@ from typing import Any
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
-
 from oa_cohorts.query.dash_cohort import DashCohort, DashCohortDef, dash_cohort_def_map
 from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure, MeasureRelationship
@@ -14,6 +13,8 @@ from oa_cohorts.query.report import Report, ReportCohortMap, ReportIndicatorMap
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
 
 from .models import (
+    DashCohortDefSummary,
+    DashCohortDefWorkspace,
     DetailLink,
     DetailRow,
     DetailSection,
@@ -21,20 +22,18 @@ from .models import (
     EntityKind,
     ExecutionIssue,
     ReportSummary,
-    DashCohortDefSummary,
     ReportWorkspace,
-    DashCohortDefWorkspace,
     RuleStatus,
     SQLVariant,
     TailoredDetailView,
     UsageSummary,
     WorkspaceNode,
 )
-from .preview import preview_measure, preview_subquery
+from .preview import preview_subquery
 from .status import resolve_rule_status
 from .validation import entity_fields, validate_entity_instance
 
-ENTITY_MODEL = {
+ENTITY_MODEL: dict[EntityKind, type[so.DeclarativeBase]] = {
     EntityKind.report: Report,
     EntityKind.indicator: Indicator,
     EntityKind.dash_cohort: DashCohort,
@@ -188,7 +187,7 @@ def is_report_short_name_available(
 
 def get_entity(session: so.Session, kind: EntityKind, entity_id: int) -> Any:
     model = ENTITY_MODEL[kind]
-    pk_name = next(iter(model.__table__.primary_key.columns)).name
+    pk_name = sa.inspect(model).primary_key[0].name
     stmt = sa.select(model).where(getattr(model, pk_name) == entity_id)
     return session.execute(stmt).scalars().unique().one()
 
@@ -928,7 +927,7 @@ def _measure_context_rows(measure: Measure) -> tuple[DetailRow, ...]:
             DetailRow(
                 "Subquery",
                 measure.subquery.name,
-                link=_detail_link(EntityKind.subquery, measure.subquery_id, measure.subquery.name),
+                link=_detail_link(EntityKind.subquery, measure.subquery.subquery_id, measure.subquery.name),
             )
         )
         rows.append(DetailRow("Target", measure.subquery.target.value))

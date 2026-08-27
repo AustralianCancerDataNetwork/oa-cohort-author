@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 import sqlalchemy as sa
-
 from oa_cohorts.core.executability import ExecStatus
 from oa_cohorts.query.measure import Measure, MeasureSQLCompiler
 from oa_cohorts.query.subquery import Subquery

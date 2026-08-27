@@ -4,6 +4,8 @@ import sqlalchemy.orm as so
 
 from . import loaders, mutations, preview, validation
 from .models import (
+    DashCohortDefSummary,
+    DashCohortDefWorkspace,
     EntityDetail,
     EntityKind,
     EntityPayload,
@@ -11,14 +13,13 @@ from .models import (
     ParentRef,
     RelationKind,
     ReportSummary,
-    DashCohortDefSummary,
     ReportWorkspace,
     SQLPreview,
     SQLVariant,
     UsageSummary,
     ValidationResult,
-    DashCohortDefWorkspace
 )
+
 
 class AuthoringService:
 

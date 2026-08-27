@@ -6,21 +6,19 @@ from typing import Any
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
-from sqlalchemy.exc import IntegrityError
-
+from oa_cohorts.core.coercion import parse_bool
 from oa_cohorts.query.dash_cohort import DashCohort, DashCohortDef, dash_cohort_def_map
 from oa_cohorts.query.indicator import Indicator
 from oa_cohorts.query.measure import Measure, MeasureRelationship
-from oa_cohorts.query.phenotype import Phenotype, PhenotypeDefinition
+from oa_cohorts.query.phenotype import PhenotypeDefinition
 from oa_cohorts.query.query_rule import QueryRule
 from oa_cohorts.query.report import Report, ReportCohortMap, ReportIndicatorMap
 from oa_cohorts.query.subquery import Subquery, subquery_rule_map
+from sqlalchemy.exc import IntegrityError
 
 from .loaders import ENTITY_MODEL, compute_usage, get_entity, load_entity_detail
 from .models import EntityKind, EntityPayload, MutationResult, ParentRef, RelationKind
 from .validation import coerce_payload, validate_entity_instance, validate_payload
-from oa_cohorts.core.coercion import parse_bool
-
 
 DIRECT_MUTABLE_FIELDS: dict[EntityKind, frozenset[str]] = {
     EntityKind.report: frozenset(
@@ -294,7 +292,10 @@ def _filtered_payload(kind: EntityKind, payload: EntityPayload) -> dict[str, Any
     allowed = DIRECT_MUTABLE_FIELDS[kind]
     filtered = {key: value for key, value in cleaned.items() if key in allowed}
     if kind is EntityKind.report and filtered:
-        filtered["report_edit_date"] = date.today()
+        # Local date deliberately: report_edit_date is a DATE column and the
+        # value means "the day the author edited this". UTC would stamp
+        # yesterday for an Australian editing before ~10am.
+        filtered["report_edit_date"] = date.today()  # noqa: DTZ011
     return filtered
 
 

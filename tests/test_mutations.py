@@ -4,10 +4,10 @@ from datetime import date
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
-
-from oa_cohort_author import AuthoringService, EntityKind, ParentRef, RelationKind
 from oa_cohorts.cli.config_import import import_config_directory
 from oa_cohorts.query.report import Report
+
+from oa_cohort_author import AuthoringService, EntityKind, ParentRef, RelationKind
 from tests.helpers import _build_config_dir
 
 
