@@ -284,3 +284,10 @@ def test_measure_window_policy_survives_clone_and_detail(tmp_path):
         assert fields["anchor_order_date_role"] == "end"
         assert fields["anchor_date_role"] == "start"
         assert fields["candidate_date_role"] == "completion"
+        assert fields["anchor_measure_id"] == parent.measure_id
+        assert fields["candidate_measure_id"] == parent.measure_id
+        assert fields["window_min_days"] == 0
+        assert fields["window_max_days"] == 14
+        assert fields["window_pick_strategy"] is None
+        assert fields["result_date_source"] is None
+        assert fields["require_same_resolver"] is True

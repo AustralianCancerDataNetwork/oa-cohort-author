@@ -9,7 +9,7 @@ from oa_cohorts.core import RuleMatcher
 from oa_cohorts.core.coercion import coerce_column_value, parse_int
 from oa_cohorts.query.dash_cohort import DashCohort, DashCohortDef
 from oa_cohorts.query.indicator import Indicator
-from oa_cohorts.query.measure import Measure
+from oa_cohorts.query.measure import Measure, MeasureTemporalWindow
 from oa_cohorts.query.phenotype import Phenotype
 from oa_cohorts.query.query_rule import QueryRule
 from oa_cohorts.query.report import Report
@@ -141,13 +141,17 @@ def entity_fields(kind: EntityKind, entity: Any) -> dict[str, Any]:
         else:
             out[column.name] = value
     if kind is EntityKind.measure and entity.window_config is not None:
-        for name in (
-            "anchor_selection",
-            "anchor_order_date_role",
-            "anchor_date_role",
-            "candidate_date_role",
-        ):
-            out[name] = getattr(entity.window_config, name)
+        config = entity.window_config
+        out.update(
+            {
+                column.name: value.value
+                if isinstance(column.type, sa.Enum) and value is not None
+                else value
+                for column in sa.inspect(MeasureTemporalWindow).columns
+                if column.name != "measure_id"
+                for value in (getattr(config, column.name),)
+            }
+        )
     return out
 
 
