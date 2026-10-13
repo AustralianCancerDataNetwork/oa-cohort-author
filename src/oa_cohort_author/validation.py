@@ -140,6 +140,14 @@ def entity_fields(kind: EntityKind, entity: Any) -> dict[str, Any]:
             out[column.name] = value.value
         else:
             out[column.name] = value
+    if kind is EntityKind.measure and entity.window_config is not None:
+        for name in (
+            "anchor_selection",
+            "anchor_order_date_role",
+            "anchor_date_role",
+            "candidate_date_role",
+        ):
+            out[name] = getattr(entity.window_config, name)
     return out
 
 

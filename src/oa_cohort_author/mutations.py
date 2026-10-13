@@ -9,7 +9,7 @@ import sqlalchemy.orm as so
 from oa_cohorts.core.coercion import parse_bool
 from oa_cohorts.query.dash_cohort import DashCohort, DashCohortDef, dash_cohort_def_map
 from oa_cohorts.query.indicator import Indicator
-from oa_cohorts.query.measure import Measure, MeasureRelationship
+from oa_cohorts.query.measure import Measure, MeasureRelationship, MeasureTemporalWindow
 from oa_cohorts.query.phenotype import PhenotypeDefinition
 from oa_cohorts.query.query_rule import QueryRule
 from oa_cohorts.query.report import Report, ReportCohortMap, ReportIndicatorMap
@@ -37,6 +37,10 @@ DIRECT_MUTABLE_FIELDS: dict[EntityKind, frozenset[str]] = {
             "indicator_description",
             "indicator_reference",
             "grain",
+            "opportunity_selection",
+            "numerator_reference",
+            "period_date_source",
+            "undated_numerator_policy",
             "numerator_measure_id",
             "denominator_measure_id",
             "numerator_max_days_prior",
@@ -49,7 +53,9 @@ DIRECT_MUTABLE_FIELDS: dict[EntityKind, frozenset[str]] = {
     ),
     EntityKind.dash_cohort: frozenset({"dash_cohort_name"}),
     EntityKind.dash_cohort_def: frozenset({"dash_cohort_def_name", "dash_cohort_def_short_name", "measure_id"}),
-    EntityKind.measure: frozenset({"name", "combination", "subquery_id", "person_ep_override"}),
+    EntityKind.measure: frozenset(
+        {"name", "combination", "subquery_id", "person_ep_override", "matching_scope"}
+    ),
     EntityKind.subquery: frozenset({"target", "temporality", "name", "short_name"}),
     EntityKind.query_rule: frozenset(
         {
@@ -228,6 +234,10 @@ def clone_for_edit(session: so.Session, kind: EntityKind, entity_id: int, parent
                 indicator_description=entity.indicator_description,
                 indicator_reference=entity.indicator_reference,
                 grain=entity.grain,
+                opportunity_selection=entity.opportunity_selection,
+                numerator_reference=entity.numerator_reference,
+                period_date_source=entity.period_date_source,
+                undated_numerator_policy=entity.undated_numerator_policy,
                 numerator_measure_id=entity.numerator_measure_id,
                 denominator_measure_id=entity.denominator_measure_id,
                 numerator_max_days_prior=entity.numerator_max_days_prior,
@@ -483,8 +493,26 @@ def _clone_measure_tree(session: so.Session, measure: Measure) -> Measure:
     clone = Measure(
         name=measure.name,
         combination=measure.combination,
+        matching_scope=measure.matching_scope,
         person_ep_override=measure.person_ep_override,
         subquery=_clone_subquery(session, measure.subquery) if measure.subquery is not None else None,
+        window_config=(
+            MeasureTemporalWindow(
+                anchor_measure_id=measure.window_config.anchor_measure_id,
+                candidate_measure_id=measure.window_config.candidate_measure_id,
+                window_min_days=measure.window_config.window_min_days,
+                window_max_days=measure.window_config.window_max_days,
+                window_pick_strategy=measure.window_config.window_pick_strategy,
+                result_date_source=measure.window_config.result_date_source,
+                require_same_resolver=measure.window_config.require_same_resolver,
+                anchor_selection=measure.window_config.anchor_selection,
+                anchor_order_date_role=measure.window_config.anchor_order_date_role,
+                anchor_date_role=measure.window_config.anchor_date_role,
+                candidate_date_role=measure.window_config.candidate_date_role,
+            )
+            if measure.window_config is not None
+            else None
+        ),
     )
     session.add(clone)
     session.flush()
