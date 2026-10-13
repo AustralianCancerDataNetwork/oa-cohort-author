@@ -36,6 +36,7 @@ DIRECT_MUTABLE_FIELDS: dict[EntityKind, frozenset[str]] = {
         {
             "indicator_description",
             "indicator_reference",
+            "grain",
             "numerator_measure_id",
             "denominator_measure_id",
             "numerator_max_days_prior",
@@ -226,6 +227,7 @@ def clone_for_edit(session: so.Session, kind: EntityKind, entity_id: int, parent
             clone = Indicator(
                 indicator_description=entity.indicator_description,
                 indicator_reference=entity.indicator_reference,
+                grain=entity.grain,
                 numerator_measure_id=entity.numerator_measure_id,
                 denominator_measure_id=entity.denominator_measure_id,
                 numerator_max_days_prior=entity.numerator_max_days_prior,

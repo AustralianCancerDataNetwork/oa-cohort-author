@@ -179,3 +179,20 @@ def test_the_indicator_mutable_fields_are_all_real_columns():
     columns = {column.name for column in Indicator.__table__.columns}
 
     assert DIRECT_MUTABLE_FIELDS[EntityKind.indicator] <= columns
+
+
+def test_patient_grain_survives_clone_read_and_edit(tmp_path):
+    session_factory = _shared_indicator_setup(tmp_path)
+    service = AuthoringService()
+    with session_factory() as session:
+        session.get(Indicator, 1).grain = "patient"
+        session.commit()
+        result = service.clone_for_edit(session, EntityKind.indicator, 1,
+                                        ParentRef(relation=RelationKind.report_indicator, parent_id=2))
+        assert result.ok, result.errors
+        assert session.get(Indicator, result.entity_id).grain == "patient"
+        assert service.get_entity_detail(session, EntityKind.indicator, result.entity_id).fields["grain"] == "patient"
+        updated = service.update_entity(session, EntityKind.indicator, result.entity_id, {"grain": "episode", "numerator_measure_id": 2, "denominator_measure_id": 1})
+        assert updated.ok, updated.errors
+        assert session.get(Indicator, result.entity_id).grain == "episode"
+        assert session.get(Indicator, 1).grain == "patient"

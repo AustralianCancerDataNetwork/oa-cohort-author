@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from oa_cohort_author.models import EntityKind
 from oa_cohort_author.validation import validate_payload
 
@@ -56,3 +58,13 @@ def test_indicator_validation_rejects_negative_dynamic_windows():
     )
     assert result.valid is False
     assert any(message.path == "numerator_max_days_prior" for message in result.messages)
+
+
+@pytest.mark.parametrize("grain", ["episode", "patient", "invalid", "", None])
+def test_indicator_grain_validation(grain):
+    result = validate_payload(EntityKind.indicator, {
+        "numerator_measure_id": 1, "denominator_measure_id": 2, "grain": grain,
+    })
+    assert result.valid is (grain in ("episode", "patient"))
+    if not result.valid:
+        assert result.messages[0].path == "grain"

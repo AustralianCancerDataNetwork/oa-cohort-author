@@ -45,7 +45,13 @@ def coerce_payload(kind: EntityKind, payload: EntityPayload) -> dict[str, Any]:
     return cleaned
 
 
+def _invalid_indicator_grain(kind: EntityKind, payload: EntityPayload) -> bool:
+    return kind is EntityKind.indicator and "grain" in payload and payload["grain"] not in ("episode", "patient")
+
+
 def validate_payload(kind: EntityKind, payload: EntityPayload) -> ValidationResult:
+    if _invalid_indicator_grain(kind, payload):
+        return ValidationResult(valid=False, messages=(ValidationMessage("grain", "grain must be episode or patient"),))
     cleaned = coerce_payload(kind, payload)
     messages: list[ValidationMessage] = []
 
