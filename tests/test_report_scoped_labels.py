@@ -11,7 +11,9 @@ from __future__ import annotations
 import sqlalchemy as sa
 import sqlalchemy.orm as so
 from oa_cohorts.cli.config_import import import_config_directory
+from oa_cohorts.core import RuleCombination
 from oa_cohorts.query.indicator import Indicator
+from oa_cohorts.query.measure import Measure, MeasureRelationship, MeasureTemporalWindow
 from oa_cohorts.query.report import Report, ReportIndicatorMap
 
 from oa_cohort_author import AuthoringService, EntityKind
@@ -93,6 +95,7 @@ def test_the_indicator_detail_keeps_canonical_and_names_the_restatement(tmp_path
     with session_factory() as session:
         detail = service.get_entity_detail(session, EntityKind.indicator, 1)
 
+    assert detail.detail_view is not None
     summary = {row.label: row.value for row in detail.detail_view.summary_sections[0].rows}
     assert summary["Description"] == CANONICAL
 
@@ -179,3 +182,112 @@ def test_the_indicator_mutable_fields_are_all_real_columns():
     columns = {column.name for column in Indicator.__table__.columns}
 
     assert DIRECT_MUTABLE_FIELDS[EntityKind.indicator] <= columns
+
+
+def test_patient_grain_survives_clone_read_and_edit(tmp_path):
+    session_factory = _shared_indicator_setup(tmp_path)
+    service = AuthoringService()
+    with session_factory() as session:
+        source = session.get(Indicator, 1)
+        source.grain = "patient"
+        source.opportunity_selection = "first"
+        source.numerator_reference = "denominator"
+        source.period_date_source = "completion"
+        source.undated_numerator_policy = "presence"
+        session.commit()
+        result = service.clone_for_edit(session, EntityKind.indicator, 1,
+                                        ParentRef(relation=RelationKind.report_indicator, parent_id=2))
+        assert result.ok, result.errors
+        assert result.entity_id is not None
+        clone = session.get(Indicator, result.entity_id)
+        assert clone.grain == "patient"
+        assert clone.opportunity_selection == "first"
+        assert clone.numerator_reference == "denominator"
+        assert clone.period_date_source == "completion"
+        assert clone.undated_numerator_policy == "presence"
+        fields = service.get_entity_detail(session, EntityKind.indicator, result.entity_id).fields
+        assert fields["grain"] == "patient"
+        assert fields["opportunity_selection"] == "first"
+        assert fields["numerator_reference"] == "denominator"
+        assert fields["period_date_source"] == "completion"
+        assert fields["undated_numerator_policy"] == "presence"
+        updated = service.update_entity(
+            session,
+            EntityKind.indicator,
+            result.entity_id,
+            {
+                "grain": "episode",
+                "opportunity_selection": "any",
+                "numerator_reference": "cohort",
+                "period_date_source": "numerator",
+                "undated_numerator_policy": "exclude",
+                "numerator_measure_id": 2,
+                "denominator_measure_id": 1,
+            },
+        )
+        assert updated.ok, updated.errors
+        assert session.get(Indicator, result.entity_id).grain == "episode"
+        assert session.get(Indicator, result.entity_id).period_date_source == "numerator"
+        assert session.get(Indicator, 1).grain == "patient"
+
+
+def test_measure_window_policy_survives_clone_and_detail(tmp_path):
+    session_factory = _shared_indicator_setup(tmp_path)
+    service = AuthoringService()
+    with session_factory() as session:
+        parent = session.scalar(sa.select(Measure).order_by(Measure.measure_id))
+        assert parent is not None
+        window = Measure(name="window", combination=RuleCombination.rule_and, matching_scope="treatment")
+        session.add(window)
+        session.flush()
+        session.add(
+            MeasureTemporalWindow(
+                measure_id=window.measure_id,
+                anchor_measure_id=parent.measure_id,
+                candidate_measure_id=parent.measure_id,
+                window_min_days=0,
+                window_max_days=14,
+                anchor_selection="latest",
+                anchor_order_date_role="end",
+                anchor_date_role="start",
+                candidate_date_role="completion",
+            )
+        )
+        session.add(
+            MeasureRelationship(
+                parent_measure_id=parent.measure_id,
+                child_measure_id=window.measure_id,
+            )
+        )
+        session.commit()
+
+        result = service.clone_for_edit(
+            session,
+            EntityKind.measure,
+            window.measure_id,
+            ParentRef(relation=RelationKind.measure_child, parent_id=parent.measure_id),
+        )
+
+        assert result.ok, result.errors
+        assert result.entity_id is not None
+        clone = session.get(Measure, result.entity_id)
+        assert clone is not None
+        assert clone.window_config is not None
+        assert clone.matching_scope == "treatment"
+        assert clone.window_config.anchor_selection == "latest"
+        assert clone.window_config.anchor_order_date_role == "end"
+        assert clone.window_config.anchor_date_role == "start"
+        assert clone.window_config.candidate_date_role == "completion"
+        fields = service.get_entity_detail(session, EntityKind.measure, result.entity_id).fields
+        assert fields["matching_scope"] == "treatment"
+        assert fields["anchor_selection"] == "latest"
+        assert fields["anchor_order_date_role"] == "end"
+        assert fields["anchor_date_role"] == "start"
+        assert fields["candidate_date_role"] == "completion"
+        assert fields["anchor_measure_id"] == parent.measure_id
+        assert fields["candidate_measure_id"] == parent.measure_id
+        assert fields["window_min_days"] == 0
+        assert fields["window_max_days"] == 14
+        assert fields["window_pick_strategy"] is None
+        assert fields["result_date_source"] is None
+        assert fields["require_same_resolver"] is True

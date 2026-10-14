@@ -9,7 +9,7 @@ from oa_cohorts.core import RuleMatcher
 from oa_cohorts.core.coercion import coerce_column_value, parse_int
 from oa_cohorts.query.dash_cohort import DashCohort, DashCohortDef
 from oa_cohorts.query.indicator import Indicator
-from oa_cohorts.query.measure import Measure
+from oa_cohorts.query.measure import Measure, MeasureTemporalWindow
 from oa_cohorts.query.phenotype import Phenotype
 from oa_cohorts.query.query_rule import QueryRule
 from oa_cohorts.query.report import Report
@@ -45,7 +45,13 @@ def coerce_payload(kind: EntityKind, payload: EntityPayload) -> dict[str, Any]:
     return cleaned
 
 
+def _invalid_indicator_grain(kind: EntityKind, payload: EntityPayload) -> bool:
+    return kind is EntityKind.indicator and "grain" in payload and payload["grain"] not in ("episode", "patient")
+
+
 def validate_payload(kind: EntityKind, payload: EntityPayload) -> ValidationResult:
+    if _invalid_indicator_grain(kind, payload):
+        return ValidationResult(valid=False, messages=(ValidationMessage("grain", "grain must be episode or patient"),))
     cleaned = coerce_payload(kind, payload)
     messages: list[ValidationMessage] = []
 
@@ -134,6 +140,18 @@ def entity_fields(kind: EntityKind, entity: Any) -> dict[str, Any]:
             out[column.name] = value.value
         else:
             out[column.name] = value
+    if kind is EntityKind.measure and entity.window_config is not None:
+        config = entity.window_config
+        out.update(
+            {
+                column.name: value.value
+                if isinstance(column.type, sa.Enum) and value is not None
+                else value
+                for column in sa.inspect(MeasureTemporalWindow).columns
+                if column.name != "measure_id"
+                for value in (getattr(config, column.name),)
+            }
+        )
     return out
 
 

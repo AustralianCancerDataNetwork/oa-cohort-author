@@ -105,6 +105,7 @@ def test_report_cohort_link_parses_false_primary_flag(tmp_path):
         import_config_directory(config_dir, session)
         cohort = service.create_entity(session, EntityKind.dash_cohort, {"dash_cohort_name": "Secondary cohort"})
         assert cohort.ok is True
+        assert cohort.entity_id is not None
 
     with session_factory() as session:
         linked = service.link_entities(
