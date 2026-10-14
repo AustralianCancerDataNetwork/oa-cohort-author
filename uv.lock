@@ -813,7 +813,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "oa-cohorts", editable = "../oa-cohorts" },
+    { name = "oa-cohorts", specifier = ">=0.12,<0.14" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.1,<0.17" },
@@ -824,7 +824,8 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "oa-cohorts"
-source = { editable = "../oa-cohorts" }
+version = "0.12.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alembic" },
     { name = "oa-configurator" },
@@ -834,36 +835,14 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", specifier = ">=1.13" },
-    { name = "ipython", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "mkdocs", marker = "extra == 'dev'", specifier = ">=1.6.1" },
-    { name = "mkdocs-material", marker = "extra == 'dev'", specifier = ">=9.7.1" },
-    { name = "mkdocs-mermaid2-plugin", marker = "extra == 'dev'" },
-    { name = "mkdocstrings-python", marker = "extra == 'dev'", specifier = ">=2.0.1" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.8" },
-    { name = "myst-parser", marker = "extra == 'docs'" },
-    { name = "oa-configurator", specifier = ">=2.0,<3" },
-    { name = "omop-alchemy", extras = ["postgres"], specifier = ">=2.0,<3" },
-    { name = "omop-constructs", editable = "../../core-stack/omop-constructs" },
-    { name = "orm-loader", specifier = ">=2.0,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.3" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
-    { name = "requests", marker = "extra == 'dev'", specifier = ">=2.33.0" },
-    { name = "rich", specifier = ">=13.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.16.1,<0.17" },
-    { name = "sphinx", marker = "extra == 'docs'" },
-    { name = "tornado", marker = "extra == 'dev'", specifier = ">=6.5.7" },
-    { name = "ty", marker = "extra == 'dev'", specifier = "==0.0.61" },
-    { name = "typer", specifier = ">=0.12" },
+sdist = { url = "https://files.pythonhosted.org/packages/7e/c8/4a6342f815258be2e2fa6ed025cd3f15a4f8e24fe6a1d8661e30e50a8bb8/oa_cohorts-0.12.0.tar.gz", hash = "sha256:364035c80eb9c1e8c2b43e049d1b8bc357ecb3fa37b1375ed0c74743b06db99b", size = 1806092, upload-time = "2026-10-13T03:55:25.866Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/c2/5082ee534e1e8dc2220e7792744bdc8132603c02ada308644b9a1520cb74/oa_cohorts-0.12.0-py3-none-any.whl", hash = "sha256:8352207f36c9588fe082a59970086e5cbcf9351592f9ba5ab6bee006a58b9327", size = 115620, upload-time = "2026-10-13T03:55:24.167Z" },
 ]
-provides-extras = ["dev", "docs"]
 
 [[package]]
 name = "oa-configurator"
-version = "2.0.0"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -874,14 +853,14 @@ dependencies = [
     { name = "typer" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e9/62/64bf398b8fe381d138446199be69bc437ef93fdb70aab48cebf51467f6ea/oa_configurator-2.0.0.tar.gz", hash = "sha256:26406e90aeadd4c747646763b80f16025c4c6638afec687517788bc537d0d581", size = 278382, upload-time = "2026-10-10T22:48:42.275Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/aa/71f787266a0a2baddf9c6452a43be901690acc5f5888de1d07c8f6adbf9b/oa_configurator-1.3.0.tar.gz", hash = "sha256:70bb6648ce94f9d09f870b02962f40a004d20aec0cfcad45b6a7fd5dcf0fe33a", size = 191240, upload-time = "2026-08-31T00:41:59.351Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/9b/99f0073d97de3545d48cf28c8f39b724d543baf83e8af8d0ba5c8bffbb01/oa_configurator-2.0.0-py3-none-any.whl", hash = "sha256:2186beb5567850ba5bfe4950c2820b909d3746c6fa233a6074a85396a343af35", size = 118027, upload-time = "2026-10-10T22:48:40.571Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/cd/8af5f354c87225732fadcf8213fddbccb6e6468868533e84a0be842e2a62/oa_configurator-1.3.0-py3-none-any.whl", hash = "sha256:9b92391c9033fbab78bd5a26932168dd184ca175f391de8099ce537cf71cf6ab", size = 67448, upload-time = "2026-08-31T00:41:58.074Z" },
 ]
 
 [[package]]
 name = "omop-alchemy"
-version = "2.0.0"
+version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "oa-configurator" },
@@ -893,9 +872,9 @@ dependencies = [
     { name = "typer" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/10/4b/a925c1db558070a4a807a38456a90dab33ab766e18cd3de890dae94295ca/omop_alchemy-2.0.0.tar.gz", hash = "sha256:403848b2c377ef6200119f4d5280a1b7e1abe0c42e8681fe16a74ee87fa82259", size = 734827, upload-time = "2026-10-10T23:39:29.99Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/b7/d5a374d6907acdbf31a99bd2213b5b18a011bcf3e9a650ab5dab6876d3ac/omop_alchemy-1.2.2.tar.gz", hash = "sha256:c886e8afd9bc1f50a6473b695431e1690a88e63498c98f62ea69174eebbd6466", size = 696983, upload-time = "2026-10-08T23:33:21.114Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7a/d2/2c271ce7d09b978bf812b698baf9000f1bc56afa2d1915b58c9b079875db/omop_alchemy-2.0.0-py3-none-any.whl", hash = "sha256:17cdbf3d901f23da339b7e4d4598f22f178499733fa326884de6e0de40c78f02", size = 298023, upload-time = "2026-10-10T23:39:28.182Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/16/d9cf8c1fa1a27372fefd1d962acf5282d3542c18a8624a0594762c32f310/omop_alchemy-1.2.2-py3-none-any.whl", hash = "sha256:3a67a3b4ca99ce7aa4af201f4df851db4d4a23542658cfc2beb0f846743d20a6", size = 280663, upload-time = "2026-10-08T23:33:19.228Z" },
 ]
 
 [package.optional-dependencies]
@@ -905,7 +884,8 @@ postgres = [
 
 [[package]]
 name = "omop-constructs"
-source = { editable = "../../core-stack/omop-constructs" }
+version = "0.10.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "oa-configurator" },
     { name = "omop-alchemy", extra = ["postgres"] },
@@ -913,29 +893,10 @@ dependencies = [
     { name = "orm-loader" },
     { name = "sqlalchemy" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "ipython", marker = "extra == 'dev'", specifier = ">=9.8.0" },
-    { name = "mkdocs", marker = "extra == 'dev'", specifier = "<2.0" },
-    { name = "mkdocs-macros-plugin", marker = "extra == 'dev'" },
-    { name = "mkdocs-material", marker = "extra == 'dev'" },
-    { name = "mkdocs-mermaid2-plugin", marker = "extra == 'dev'" },
-    { name = "mkdocs-table-reader-plugin", marker = "extra == 'dev'" },
-    { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'" },
-    { name = "oa-configurator", specifier = ">=2.0,<3" },
-    { name = "omop-alchemy", extras = ["postgres"], specifier = ">=2.0,<3" },
-    { name = "omop-semantics", specifier = ">=0.6.2" },
-    { name = "orm-loader", specifier = ">=2.0,<3" },
-    { name = "pygments", marker = "extra == 'dev'", specifier = ">=2.20.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.3" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15,<0.16" },
-    { name = "sqlalchemy", specifier = ">=2.0.45" },
-    { name = "tornado", marker = "extra == 'dev'", specifier = ">=6.5.5" },
-    { name = "ty", marker = "extra == 'dev'", specifier = "==0.0.61" },
+sdist = { url = "https://files.pythonhosted.org/packages/02/8c/a1092685631bceff32ec84060cac972ab1c5c26e8697e9bcd8dbf2b33bd9/omop_constructs-0.10.0.tar.gz", hash = "sha256:3737c6fffd36690cc2bf256a4f30dd2c6648b1c3b745585b64ad0250125939a8", size = 276294, upload-time = "2026-10-11T02:57:35.231Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8e/84/a1c3de0f049b735ab6cd9664cc18521341c458f2a8b5dd57897f2669350e/omop_constructs-0.10.0-py3-none-any.whl", hash = "sha256:f91554d843f2489c22053bb44146abec8072957717e9ca923b32a17a86874853", size = 100000, upload-time = "2026-10-11T02:57:33.626Z" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "omop-semantics"
@@ -968,7 +929,7 @@ wheels = [
 
 [[package]]
 name = "orm-loader"
-version = "2.0.0"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "chardet" },
@@ -977,9 +938,9 @@ dependencies = [
     { name = "pyarrow" },
     { name = "sqlalchemy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6a/cd/b3a29d383b80e1c282a3ee12a28f00b5608802763dd98ed7b3adc637e630/orm_loader-2.0.0.tar.gz", hash = "sha256:73232ecb5f1474738e54f30fae89999620d57cc41456ae799669a74c690a76b3", size = 171586, upload-time = "2026-10-10T23:22:15.966Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/17/42/093713d63ac7af5b29d94fd33f1888f4d192b38c867b16349caa53c1c0af/orm_loader-1.2.0.tar.gz", hash = "sha256:a000527daab1aeaaeb460e135984330805d2243f5d603c8c649b7d0e2cf75ae4", size = 158420, upload-time = "2026-09-02T06:22:56.506Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/61/6687b9c1602deb1c364d4653c641698e3de298b9c4f5dc98c59698455ac7/orm_loader-2.0.0-py3-none-any.whl", hash = "sha256:a118ddc3fcb611d658b7be52f616b641804ae65067efd05753d1bc14a03b52c9", size = 74959, upload-time = "2026-10-10T23:22:14.645Z" },
+    { url = "https://files.pythonhosted.org/packages/46/65/96fe27564dbb9b74fc1991a5ef3d057bf1cfa227f65bd742e83b2328cef0/orm_loader-1.2.0-py3-none-any.whl", hash = "sha256:068ab02e4f2767047aae02908bf50ef63f3951905da5b841a3ee6b931926ae8b", size = 69661, upload-time = "2026-09-02T06:22:55.183Z" },
 ]
 
 [[package]]

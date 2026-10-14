@@ -26,9 +26,6 @@ packages = ["src/oa_cohort_author"]
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true } }]
 
-[tool.uv.sources]
-oa-cohorts = { path = "../oa-cohorts", editable = true }
-
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
