@@ -162,6 +162,7 @@ def _validate_query_rule(cleaned: Mapping[str, Any], messages: list[ValidationMe
         RuleMatcher.hierarchy,
         RuleMatcher.hierarchyexclusion,
         RuleMatcher.substring,
+        RuleMatcher.obs_context,
     } and cleaned.get("concept_id") is None:
         messages.append(ValidationMessage("concept_id", "concept_id is required for this matcher"))
     if matcher is RuleMatcher.phenotype and cleaned.get("phenotype_id") is None:

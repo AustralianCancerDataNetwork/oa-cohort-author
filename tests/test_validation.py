@@ -12,6 +12,15 @@ def test_query_rule_validation_flags_missing_required_fields():
     assert any(message.path == "concept_id" for message in result.messages)
 
 
+def test_obs_context_rule_requires_concept_id():
+    missing = validate_payload(EntityKind.query_rule, {"matcher": "obs_context"})
+    assert missing.valid is False
+    assert any(message.path == "concept_id" for message in missing.messages)
+
+    present = validate_payload(EntityKind.query_rule, {"matcher": "obs_context", "concept_id": 46235473})
+    assert not any(message.path == "concept_id" for message in present.messages)
+
+
 def test_subquery_validation_flags_missing_rules_for_valid_state():
     result = validate_payload(
         EntityKind.subquery,
